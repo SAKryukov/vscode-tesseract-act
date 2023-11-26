@@ -120,10 +120,8 @@ const selectLanguage = context => {
         for (let index in list)
             if (index != topIndex)
                 newList.push(list[index]);
-        while (list.length > 0)
-            list.pop();
-        for (let item of newList)
-            list.push(item);
+        for (let index in list)
+            list[index] = newList[index];
     }; //sortLanguages
     sortLanguages(context, languages);    
     vscode.window.showQuickPick(languages, {
