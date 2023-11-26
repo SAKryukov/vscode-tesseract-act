@@ -1,0 +1,1 @@
+# vscode-tesseract-act
