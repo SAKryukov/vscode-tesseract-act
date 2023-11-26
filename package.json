@@ -1,0 +1,68 @@
+{
+    "name": "tesseract-act",
+    "displayName": "Tesseract Act",
+    "description": "Performs Optical Character Recognition using Tesseract OCR",
+    "version": "0.1.1",
+    "publisher": "sakryukov",
+    "homepage": "http://www.SAKryukov.org",
+    "author": {
+        "name": "Sergey A Kryukov",
+        "url": "http://www.SAKryukov.org"
+    },
+    "license": "MIT",
+    "icon": "images/logo.png",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/SAKryukov/vscode-tesseract-act.git"
+    },
+    "engines": {
+        "vscode": ">=1.84.2"
+    },
+    "categories": [
+        "Other"
+    ],
+    "keywords": [
+        "ocr"
+    ],
+    "activationEvents": [
+        "onStartupFinished"
+    ],
+    "main": "./extension/main.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "tesseract.act.recognize",
+                "title": "Tesseract: Recognize Text"
+            },
+            {
+                "command": "tesseract.act.language",
+                "title": "Tesseract: Language"
+            }
+        ],
+        "menus": {
+            "commandPalette": [
+                {
+                    "command": "tesseract.act.recognize",
+                    "when": "tesseract.act.recognize.enabled"
+                },
+                {
+                    "command": "tesseract.act.language"
+                }
+            ]
+        },
+        "configuration": {
+            "type": "object",
+            "title": "Tesseract Act",
+            "properties": {
+                "tesseract.executableFileLocation": {
+                    "description": "Tesseract executable file location",
+                    "type": "string",
+                    "default": "tesseract"
+                }
+            }
+        },
+        "__metadata": {
+            "publisherDisplayName": "Sergey A Kryukov"
+        }
+    }
+}
