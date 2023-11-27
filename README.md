@@ -15,3 +15,7 @@ It performs Optical Character Recognition of data found in an image file and ope
 * Tesseract: Language
 
 The second command allows the user to select a language for recognition. The user's choice is persistently remembered for the current workspace.
+
+## Installation
+
+[Tesseract Act On Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=sakryukov.tesseract-act)
