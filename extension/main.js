@@ -28,11 +28,14 @@ const definitionSet = {
         return false;
     }, //isSupportedImageFile
     quote: text =>
-        `${String.fromCodePoint(0x201C)}${text}${String.fromCodePoint(0x201D)}`
+        `${String.fromCodePoint(0x201C)}${text}${String.fromCodePoint(0x201D)}`,
+    empty: "",
 }; //definitionSet
 
-let statusBarItem = null;
-let tesseractExecutableFound = false;
+const activeUri = () =>
+    vscode.window?.tabGroups?.activeTabGroup?.activeTab?.input?.uri?.fsPath;
+
+let statusBarItem = null, tesseractExecutableFound = false, languages = [];
 
 const updateEnablement = () => {
     vscode.commands.executeCommand(
@@ -41,7 +44,7 @@ const updateEnablement = () => {
         tesseractExecutableFound);
     const isGoodImage = () => {
         if (!statusBarItem) return false;
-        const file = uri();
+        const file = activeUri();
         if (!file) return false;
         return definitionSet.isSupportedImageFile(file);
     };
@@ -62,11 +65,10 @@ const setState = (context, language) => {
 const getState = context => 
     context.workspaceState.get(definitionSet.tesseractLanguageKey);
 
-let languages = [];
 const parseLanguages = configuration => {
     const list = [];
     childProcess.exec(`${configuration.executableFileLocation} --list-langs`, (_, stdout) => {
-        stdout = stdout.replaceAll("\r", "");
+        stdout = stdout.replaceAll("\r", definitionSet.empty);
         const split = stdout.split("\n");
         let started = false;
         for (let line of split) {
@@ -104,14 +106,11 @@ const changeConfigurationHandle = (context) => {
     updateEnablement();
 }; //changeConfigurationHandle
 
-const uri = () =>
-    vscode.window?.tabGroups?.activeTabGroup?.activeTab?.input?.uri?.fsPath;
-
 const recognizeText = (context, configuration) => {
-    const inputfileName = uri();
+    const inputfileName = activeUri();
     const outputFileName = `${inputfileName}.txt`;
     const stateLanguage = getState(context);
-    let language = stateLanguage ? `-l ${stateLanguage}` : "";
+    let language = stateLanguage ? `-l ${stateLanguage}` : definitionSet.empty;
     childProcess.exec(`${configuration.executableFileLocation} ${inputfileName} ${inputfileName} ${language}`, (error, stdout, stderr) => {
         if (stdout)
             vscode.window.showInformationMessage(stdout);
