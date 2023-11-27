@@ -1,7 +1,7 @@
 "use strict";
 
-const vscode = require('vscode');
-const childProcess = require('child_process');
+const vscode = require("vscode");
+const childProcess = require("child_process");
 const fileSystem = require("fs");
 const path = require("path");
 
@@ -20,19 +20,20 @@ const definitionSet = {
     tesseractLanguageKey: "tesseract.Language",
     statusBarItemLanguage: language => language ? `Tesseract Language: ${language}` : "Tesseract Language: default",
     supportedInputFileTypes: ["png", "jpg", "jpeg", "tif", "tiff", "gif", "webp", "bmp"],
-    isSupportedImageFile: function(file) {
+    isImageFileSupported: function(file) {
         if (!file) return false;
         file = file.toLowerCase();
         for (let suffix of this.supportedInputFileTypes)
             if (file.endsWith(`.${suffix}`))
                 return true;
         return false;
-    }, //isSupportedImageFile
+    }, //isImageFileSupported
     tesseract: { //careful! specific to Tesseract-OCR:
         outputFile: inputFile =>
             `${inputFile}.txt`, //to match specific automatic file naming
         commandLine: (executableFile, fileName, language) =>
             `${executableFile} ${fileName} ${fileName} -l ${language == null ? "" : language}`,
+        commandLineLanguages: executable => `${executable} --list-langs`,
     },
     quote: text =>
         `${String.fromCodePoint(0x201C)}${text}${String.fromCodePoint(0x201D)}`,
@@ -53,7 +54,7 @@ const updateEnablement = () => {
         if (!statusBarItem) return false;
         const file = activeUri();
         if (!file) return false;
-        return definitionSet.isSupportedImageFile(file);
+        return definitionSet.isImageFileSupported(file);
     };
     const goodImage = isGoodImage();
     vscode.commands.executeCommand(
@@ -74,7 +75,8 @@ const getState = context =>
 
 const parseLanguages = configuration => {
     const list = [];
-    childProcess.exec(`${configuration.executableFileLocation} --list-langs`, (_, stdout) => {
+    childProcess.exec(definitionSet.tesseract.commandLineLanguages(
+        configuration.executableFileLocation), (_, stdout) => {
         stdout = stdout.replaceAll("\r", definitionSet.empty);
         const split = stdout.split("\n");
         let started = false;
@@ -193,7 +195,6 @@ exports.activate = context => {
     const tabGroupSet = vscode.window.tabGroups;
     context.subscriptions.push(tabGroupSet.onDidChangeTabGroups(() => updateEnablement()));
     context.subscriptions.push(tabGroupSet.onDidChangeTabs(() => updateEnablement()));
-  console.log(tabGroupSet);
 }; //exports.activate
 
 exports.deactivate = () => { };
