@@ -22,7 +22,7 @@
         "Other"
     ],
     "keywords": [
-        "ocr"
+        "ocr", "tesseract", "tesseract-ocr", "recognition"
     ],
     "activationEvents": [
         "onStartupFinished"

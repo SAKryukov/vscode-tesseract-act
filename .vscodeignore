@@ -2,6 +2,7 @@
 *.vsix
 .vscode
 .git
+**/*.webp
 **/.gitignore
 **/*.txt
 **/test*
