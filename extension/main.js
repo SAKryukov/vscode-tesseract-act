@@ -8,12 +8,17 @@ const definitionSet = {
     commands: { // keep in sync with package:
         setLanguage: "tesseract.act.language",
         recognize: "tesseract.act.recognize",
+        recognizeTitle: "Tesseract: Recognize Text",
+        setLanguageContext: "tesseract.act.language.enabled",
         recognizeContext: "tesseract.act.recognize.enabled",
         setContext: "setContext", // predefined, use with recognizeContext
+        setLanguageHint: function() {
+            return `To recognize as text, use command: ${this.recognizeTitle}`;
+        }, //setLanguageHint
     },
     tesseractLanguageKey: "tesseract.Language",
-    statusBatItemLanguage: language => language ? `Tesseract Language: ${language}` : "Tesseract Language: default",
-    supportedInputFileTypes: ["png", "jpg", "jpeg", "tif", "tiff", "gif", "webp", "bmp", "pnm"],
+    statusBarItemLanguage: language => language ? `Tesseract Language: ${language}` : "Tesseract Language: default",
+    supportedInputFileTypes: ["png", "jpg", "jpeg", "tif", "tiff", "gif", "webp", "bmp"],
     isSupportedImageFile: function(file) {
         if (!file) return false;
         file = file.toLowerCase();
@@ -21,8 +26,35 @@ const definitionSet = {
             if (file.endsWith(`.${suffix}`))
                 return true;
         return false;
-    },
+    }, //isSupportedImageFile
+    quote: text =>
+        `${String.fromCodePoint(0x201C)}${text}${String.fromCodePoint(0x201D)}`
 }; //definitionSet
+
+let statusBarItem = null;
+let tesseractExecutableFound = false;
+
+const updateEnablement = () => {
+    vscode.commands.executeCommand(
+        definitionSet.commands.setContext,
+        definitionSet.commands.setLanguageContext,
+        tesseractExecutableFound);
+    const isGoodImage = () => {
+        if (!statusBarItem) return false;
+        const file = uri();
+        if (!file) return false;
+        return definitionSet.isSupportedImageFile(file);
+    };
+    const goodImage = isGoodImage();
+    vscode.commands.executeCommand(
+        definitionSet.commands.setContext,
+        definitionSet.commands.recognizeContext,
+        goodImage && tesseractExecutableFound);
+    if (goodImage && tesseractExecutableFound)
+        statusBarItem?.show();
+    else
+        statusBarItem?.hide();
+}; // updateEnablement
 
 const setState = (context, language) => {
     context.workspaceState.update(definitionSet.tesseractLanguageKey, language);
@@ -46,21 +78,28 @@ const parseLanguages = (configuration, list) => {
     });
 }; //parseLanguages
 
-let statusBatItem = null;
-
-const changeConfigurationHandle = (context, configuration) => {
-    if (!fileSystem.existsSync(configuration.executableFileLocation))
-        return vscode.window.showErrorMessage(`File not found: ${quote(configuration.executableFileLocation)}. Please edit VSCode settings, "tesseract.executableFileLocation"`)
+const changeConfigurationHandle = (context) => {
+    const configuration = vscode.workspace.getConfiguration().tesseract;
+    tesseractExecutableFound = fileSystem.existsSync(configuration.executableFileLocation);
+    if (!tesseractExecutableFound) {
+        vscode.commands.executeCommand(
+            definitionSet.commands.setContext,
+            definitionSet.commands.recognizeContext,
+            false);
+        return vscode.window.showErrorMessage(`File not found: ${definitionSet.quote(configuration.executableFileLocation)}. Please edit VSCode settings, "tesseract.executableFileLocation"`);
+    } //if
     parseLanguages(configuration, languages);
-    if (statusBatItem == null)
-        statusBatItem = vscode.window.createStatusBarItem(
+    if (statusBarItem == null)
+        statusBarItem = vscode.window.createStatusBarItem(
             "tesseract.act.language.statusBarItem",
-            vscode.StatusBarAlignment.Right,
-            1000); //SA???
+            vscode.StatusBarAlignment.Left); // SA!!! I don't like vscode.StatusBarAlignment.Right,
+                                             // because it requires pretty stupid "priority" argument
+    context.subscriptions.push(statusBarItem);
     const language = getState(context);
-    statusBatItem.text = definitionSet.statusBatItemLanguage(language);
-    statusBatItem.command = definitionSet.commands.setLanguage;
-    statusBatItem.show();
+    statusBarItem.text = definitionSet.statusBarItemLanguage(language);
+    statusBarItem.tooltip = definitionSet.commands.setLanguageHint();
+    statusBarItem.command = definitionSet.commands.setLanguage;
+    updateEnablement();
 }; //changeConfigurationHandle
 
 const uri = () => {
@@ -68,25 +107,6 @@ const uri = () => {
     if (!tabArray) return null;
     return tabArray[0]?.activeTab?.input?.uri?.fsPath;
 } //const uri
-//
-const changeDocumentHandler = () => {
-    if (!statusBatItem) return;
-    const show = () => {
-        if (!statusBatItem) return false;
-        const file = uri();
-        if (!file) return false;
-        return definitionSet.isSupportedImageFile(file);
-    };
-    const doShow = show();
-    if (doShow)
-        statusBatItem.show();
-    else
-        statusBatItem.hide();
-    vscode.commands.executeCommand(
-        definitionSet.commands.setContext,
-        definitionSet.commands.recognizeContext,
-        doShow);
-}; //changeDocumentHandler
 
 const recognizeText = (context, configuration) => {
     const inputfileName = uri();
@@ -128,30 +148,24 @@ const selectLanguage = context => {
         placeHolder: "Select Tesseract Language",
         onDidSelectItem: item => {
             setState(context, item);
-            statusBatItem.text = definitionSet.statusBatItemLanguage(item);
+            statusBarItem.text = definitionSet.statusBarItemLanguage(item);
         }
     });
 }; //selectLanguage
 
-const quote = text =>
-    `${String.fromCodePoint(0x201C)}${text}${String.fromCodePoint(0x201D)}`;
-
 exports.activate = context => {
     const configuration = vscode.workspace.getConfiguration().tesseract;
-    let disposable = vscode.commands.registerCommand(definitionSet.commands.recognize,
-        () => recognizeText(context, configuration) );
-	context.subscriptions.push(disposable);
-    disposable = vscode.commands.registerCommand(definitionSet.commands.setLanguage,
-        () => selectLanguage(context));
-	context.subscriptions.push(disposable);
-    disposable = vscode.workspace.onDidChangeConfiguration(() =>
-        changeConfigurationHandle(context, configuration));
-    changeConfigurationHandle(context, configuration);
-	context.subscriptions.push(disposable);
-    disposable = vscode.window.onDidChangeActiveTextEditor(() =>
-        changeDocumentHandler());
-    changeDocumentHandler();
-	context.subscriptions.push(disposable);
+    context.subscriptions.push(vscode.commands.registerCommand(definitionSet.commands.recognize,
+        () => recognizeText(context, configuration) ));
+    context.subscriptions.push(vscode.commands.registerCommand(definitionSet.commands.setLanguage,
+        () => selectLanguage(context)));
+    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(() =>
+        changeConfigurationHandle(context)));
+    changeConfigurationHandle(context);
+    const tabGroupSet = vscode.window.tabGroups;
+    context.subscriptions.push(tabGroupSet.onDidChangeTabGroups(() => updateEnablement()));
+    context.subscriptions.push(tabGroupSet.onDidChangeTabs(() => updateEnablement()));
+  console.log(tabGroupSet);
 }; //exports.activate
 
 exports.deactivate = () => { };
