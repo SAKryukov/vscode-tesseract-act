@@ -3,6 +3,7 @@
 const vscode = require('vscode');
 const childProcess = require('child_process');
 const fileSystem = require("fs");
+const path = require("path");
 
 const definitionSet = {
     commands: { // keep in sync with package:
@@ -27,6 +28,12 @@ const definitionSet = {
                 return true;
         return false;
     }, //isSupportedImageFile
+    tesseract: { //careful! specific to Tesseract-OCR:
+        outputFile: inputFile =>
+            `${inputFile}.txt`, //to match specific automatic file naming
+        commandLine: (executableFile, fileName, language) =>
+            `${executableFile} ${fileName} ${fileName} ${language == null ? "" : language}`,
+    },
     quote: text =>
         `${String.fromCodePoint(0x201C)}${text}${String.fromCodePoint(0x201D)}`,
     empty: "",
@@ -35,7 +42,7 @@ const definitionSet = {
 const activeUri = () =>
     vscode.window?.tabGroups?.activeTabGroup?.activeTab?.input?.uri?.fsPath;
 
-let statusBarItem = null, tesseractExecutableFound = false, languages = [];
+let statusBarItem = null, tesseractExecutableFound = false, languages = [], continueWithoutConfirmation = false;
 
 const updateEnablement = () => {
     vscode.commands.executeCommand(
@@ -83,6 +90,7 @@ const parseLanguages = configuration => {
 }; //parseLanguages
 
 const changeConfigurationHandle = (context) => {
+    continueWithoutConfirmation = false;
     const configuration = vscode.workspace.getConfiguration().tesseract;
     tesseractExecutableFound = fileSystem.existsSync(configuration.executableFileLocation);
     if (!tesseractExecutableFound) {
@@ -95,7 +103,7 @@ const changeConfigurationHandle = (context) => {
     languages = parseLanguages(configuration);
     if (statusBarItem == null)
         statusBarItem = vscode.window.createStatusBarItem(
-            "tesseract.act.language.statusBarItem",
+            "tesseract.act.language.statusBarItem", // unused
             vscode.StatusBarAlignment.Left); // SA!!! I don't like vscode.StatusBarAlignment.Right,
                                              // because it requires pretty stupid "priority" argument
     context.subscriptions.push(statusBarItem);
@@ -108,18 +116,39 @@ const changeConfigurationHandle = (context) => {
 
 const recognizeText = (context, configuration) => {
     const inputfileName = activeUri();
-    const outputFileName = `${inputfileName}.txt`;
-    const stateLanguage = getState(context);
-    let language = stateLanguage ? `-l ${stateLanguage}` : definitionSet.empty;
-    childProcess.exec(`${configuration.executableFileLocation} ${inputfileName} ${inputfileName} ${language}`, (error, stdout, stderr) => {
-        if (stdout)
-            vscode.window.showInformationMessage(stdout);
-        if (stderr && stderr.startsWith("Error")) //SA???
-            vscode.window.showErrorMessage(stderr);
-        if (!error && fileSystem.existsSync(outputFileName))
-            vscode.workspace.openTextDocument(outputFileName).then(document =>
-                vscode.window.showTextDocument(document));
-    });
+    const outputFileName = definitionSet.tesseract.outputFile(inputfileName);
+    const language = getState(context);
+    const commandLine = definitionSet.tesseract.commandLine(configuration.executableFileLocation, inputfileName, language);
+    const act = () => {
+        childProcess.exec(commandLine, (error, stdout, stderr) => {
+            if (stdout)
+                vscode.window.showInformationMessage(stdout);
+            if (stderr && stderr.startsWith("Error")) //SA???
+                vscode.window.showErrorMessage(stderr);
+            if (!error && fileSystem.existsSync(outputFileName))
+                vscode.workspace.openTextDocument(outputFileName).then(document =>
+                    vscode.window.showTextDocument(document, { preview: true }));
+        });
+    }; //act
+    const actWithConfirmation = () => {
+        const request = [
+            "Overwrite and continue",
+            "Overwrite, continue, and don't ask me again during the current workspace session",
+            "Cancel"];
+        const noAsk = request[1];
+        const cancel = request[2];
+        vscode.window.showQuickPick(request, {
+            placeHolder: `Output file ${definitionSet.quote(path.basename(outputFileName))} already exists. What to do?`,
+        }).then(answer => {
+            if (!answer || answer == cancel) return; // answer is undefined (!answer) if the user hits Cancel button
+            if (answer == noAsk) continueWithoutConfirmation = true;
+            act();
+        });    
+    }; //actWithConfirmation
+    if (fileSystem.existsSync(outputFileName) && !continueWithoutConfirmation)
+        actWithConfirmation();
+    else
+        act();
 }; // recognizeText
 
 const selectLanguage = context => {
@@ -160,6 +189,7 @@ exports.activate = context => {
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(() =>
         changeConfigurationHandle(context)));
     changeConfigurationHandle(context);
+    context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(() => continueWithoutConfirmation = false));
     const tabGroupSet = vscode.window.tabGroups;
     context.subscriptions.push(tabGroupSet.onDidChangeTabGroups(() => updateEnablement()));
     context.subscriptions.push(tabGroupSet.onDidChangeTabs(() => updateEnablement()));
