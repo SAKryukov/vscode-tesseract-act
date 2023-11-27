@@ -104,11 +104,8 @@ const changeConfigurationHandle = (context) => {
     updateEnablement();
 }; //changeConfigurationHandle
 
-const uri = () => {
-    const tabArray = vscode.window.tabGroups?.all;
-    if (!tabArray) return null;
-    return tabArray[0]?.activeTab?.input?.uri?.fsPath;
-} //const uri
+const uri = () =>
+    vscode.window?.tabGroups?.activeTabGroup?.activeTab?.input?.uri?.fsPath;
 
 const recognizeText = (context, configuration) => {
     const inputfileName = uri();
