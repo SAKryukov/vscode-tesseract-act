@@ -62,8 +62,9 @@ const setState = (context, language) => {
 const getState = context => 
     context.workspaceState.get(definitionSet.tesseractLanguageKey);
 
-const languages = [];
-const parseLanguages = (configuration, list) => {
+let languages = [];
+const parseLanguages = configuration => {
+    const list = [];
     childProcess.exec(`${configuration.executableFileLocation} --list-langs`, (_, stdout) => {
         stdout = stdout.replaceAll("\r", "");
         const split = stdout.split("\n");
@@ -76,6 +77,7 @@ const parseLanguages = (configuration, list) => {
             list.push(line);
         } //loop       
     });
+    return list;
 }; //parseLanguages
 
 const changeConfigurationHandle = (context) => {
@@ -88,7 +90,7 @@ const changeConfigurationHandle = (context) => {
             false);
         return vscode.window.showErrorMessage(`File not found: ${definitionSet.quote(configuration.executableFileLocation)}. Please edit VSCode settings, "tesseract.executableFileLocation"`);
     } //if
-    parseLanguages(configuration, languages);
+    languages = parseLanguages(configuration);
     if (statusBarItem == null)
         statusBarItem = vscode.window.createStatusBarItem(
             "tesseract.act.language.statusBarItem",
