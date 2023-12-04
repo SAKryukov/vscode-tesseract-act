@@ -4,10 +4,10 @@
     "description": "Performs Optical Character Recognition using Tesseract OCR",
     "version": "2.2.0",
     "publisher": "sakryukov",
-    "homepage": "http://www.SAKryukov.org",
+    "homepage": "https://www.SAKryukov.org",
     "author": {
         "name": "Sergey A Kryukov",
-        "url": "http://www.SAKryukov.org"
+        "url": "https://www.SAKryukov.org"
     },
     "license": "MIT",
     "icon": "images/logo.png",
