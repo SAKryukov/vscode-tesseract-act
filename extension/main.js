@@ -32,7 +32,7 @@ const definitionSet = {
         outputFile: inputFile =>
             `${inputFile}.txt`, //to match specific automatic file naming
         commandLine: (executableFile, fileName, language) =>
-            `${executableFile} ${fileName} ${fileName} -l ${language == null ? "" : language}`,
+            `${executableFile} ${fileName} ${fileName} ${language == null ? "" : "-l " + language}`,
         commandLineLanguages: executable => `${executable} --list-langs`,
     },
     quote: text =>
