@@ -2,7 +2,7 @@
     "name": "tesseract-act",
     "displayName": "Tesseract Act",
     "description": "Performs Optical Character Recognition using Tesseract OCR",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "publisher": "sakryukov",
     "homepage": "https://www.SAKryukov.org",
     "author": {
@@ -48,6 +48,12 @@
                 {
                     "command": "tesseract.act.language",
                     "when": "tesseract.act.language.enabled"
+                }
+            ],
+            "editor/title": [
+                {
+                    "command": "tesseract.act.recognize",
+                    "when": "tesseract.act.recognize.enabled"
                 }
             ]
         },
