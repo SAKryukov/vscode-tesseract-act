@@ -49,12 +49,6 @@
                     "command": "tesseract.act.language",
                     "when": "tesseract.act.language.enabled"
                 }
-            ],
-            "editor/title": [
-                {
-                    "command": "tesseract.act.recognize",
-                    "when": "tesseract.act.recognize.enabled"
-                }
             ]
         },
         "configuration": {
@@ -62,7 +56,7 @@
             "title": "Tesseract Act",
             "properties": {
                 "tesseract.executableFileLocation": {
-                    "description": "Tesseract executable file location",
+                    "description": "Tesseract command or executable file location",
                     "type": "string",
                     "default": "tesseract"
                 }

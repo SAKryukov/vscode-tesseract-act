@@ -40,6 +40,16 @@ const definitionSet = {
     empty: "",
 }; //definitionSet
 
+const commandExists = fileOrCommand => {
+    if (fileSystem.existsSync(fileOrCommand)) return true;
+    try {
+        childProcess.execSync(definitionSet.tesseract.commandLineLanguages(fileOrCommand));
+    } catch {
+        return false;
+    } //exception
+    return true;
+}; //commandExists
+
 const activeUri = () =>
     vscode.window?.tabGroups?.activeTabGroup?.activeTab?.input?.uri?.fsPath;
 
@@ -94,7 +104,7 @@ const parseLanguages = configuration => {
 const changeConfigurationHandle = (context) => {
     continueWithoutConfirmation = false;
     const configuration = vscode.workspace.getConfiguration().tesseract;
-    tesseractExecutableFound = fileSystem.existsSync(configuration.executableFileLocation);
+    tesseractExecutableFound = commandExists(configuration.executableFileLocation);
     if (!tesseractExecutableFound) {
         vscode.commands.executeCommand(
             definitionSet.commands.setContext,
