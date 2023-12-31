@@ -2,7 +2,7 @@
 
 <img alt="Logo" src="images/logo.webp" width="84"/>
 
-This package is a Visual Studio Code *extension*, a convenient UI wrapper for Tesseract OCR &mdash; in the VSCode style.
+This package is a Visual Studio Code *extension*, a convenient UI wrapper for [Tesseract OCR](https://github.com/tesseract-ocr/tesseract?tab=readme-ov-file#installing-tesseract) &mdash; in the VSCode style.
 It performs Optical Character Recognition of data found in an image file and opens the recognition result in a text editor.
 
 ## Settings:
