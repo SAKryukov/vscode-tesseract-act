@@ -7,7 +7,8 @@ It performs Optical Character Recognition of data found in an image file and ope
 
 ## Settings:
 
-`tesseract.executableFileLocation`: the location of the Tesseract executable file
+`tesseract.executableFileLocation`: Tesseract command or the location of the Tesseract executable file<br/>
+Default: `tesseract`
 
 ## Commands:
 
