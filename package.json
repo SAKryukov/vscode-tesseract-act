@@ -10,7 +10,7 @@
         "url": "https://www.SAKryukov.org"
     },
     "license": "MIT",
-    "icon": "images/logo.png",
+    "icon": "article/logo.png",
     "repository": {
         "type": "git",
         "url": "https://github.com/SAKryukov/vscode-tesseract-act.git"
