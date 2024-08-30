@@ -46,6 +46,21 @@ For further detial, please see the [Tesseract documentation repository](https://
 
 ### Event Deficit
 
+Normally:
+
+~~~{lang=JavaScript}
+vscode.workspace.onDidOpenTextDocument
+~~~
+
+General-case tab:
+
+~~~{lang=JavaScript}
+context.subscriptions.push(
+    tabGroupSet.onDidChangeTabGroups(() => updateEnablement()));
+context.subscriptions.push(
+    tabGroupSet.onDidChangeTabs(() => updateEnablement()));
+~~~
+
 ~~~{lang=JavaScript}
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
