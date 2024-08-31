@@ -41,7 +41,6 @@ const definitionSet = {
 }; //definitionSet
 
 const commandExists = fileOrCommand => {
-    if (fileSystem.existsSync(fileOrCommand)) return true;
     try {
         childProcess.execSync(definitionSet.tesseract.commandLineLanguages(fileOrCommand));
     } catch {
