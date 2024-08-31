@@ -59,12 +59,12 @@ A first pretty trivial problem took the most investigation. The problem is that 
 The problem is that Visual Studio Code is well-sharpened for text editing but it does not provide the event analogous to the appropriate event for a text file. Here is what can be done quite conveniently for the text files:
 
 ~~~{lang=JavaScript}
-exports.activate = context => {
+exports.activate = context =&gt; {
     //...
     // not applicable to the present extension:
     context.subscriptions.push(
         vscode.workspace.onDidOpenTextDocument(
-            textDocument => doSomething(textDocument)));
+            textDocument =&gt; doSomething(textDocument)));
 };
 ~~~
 
@@ -73,13 +73,13 @@ Additionally, we could use `textDocument.languageId` to do different actions for
 We cannot do the same thing for an arbitrary file. The solution is a bit more complicated. We need to handle the combination of two events, `onDidChangeTabGroups`, and `onDidChangeTabs` --- only the combination covers all the cases. This is how the magic works:
 
 ~~~{lang=JavaScript}
-exports.activate = context => {
+exports.activate = context =&gt; {
     //...
     const tabGroupSet = vscode.window.tabGroups;
     context.subscriptions.push(
-        tabGroupSet.onDidChangeTabGroups(() => updateEnablement()));
+        tabGroupSet.onDidChangeTabGroups(() =&gt; updateEnablement()));
     context.subscriptions.push(
-        tabGroupSet.onDidChangeTabs(() => updateEnablement()));
+        tabGroupSet.onDidChangeTabs(() =&gt; updateEnablement()));
 };
 ~~~
 
@@ -90,9 +90,12 @@ I think it is pretty much obvious what `updateEnablement` should do. Please see 
 This is the skeleton of the function `updateEnablement`:
 
 ~~~{lang=JavaScript}
-exports.activate = context => {
-    //...
-    const isGoodImage = () => {
+exports.activate = context =&gt; {
+    vscode.commands.executeCommand(
+        definitionSet.commands.setContext,
+        definitionSet.commands.setLanguageContext,
+        tesseractExecutableFound);
+    const isGoodImage = () =&gt; {
         if (!statusBarItem) return false;
         const file = activeUri();
         if (!file) return false;
@@ -107,7 +110,7 @@ Note that the `file` is found as `activeUri`, and the file name is tested for co
 Here is how to find the active URI:
 
 ~~~{lang=JavaScript}
-const activeUri = () =>
+const activeUri = () =&gt;
     vscode.window?.tabGroups?.activeTabGroup?.activeTab?.input?.uri?.fsPath;
 ~~~
 
@@ -129,9 +132,52 @@ const definitionSet = {
 };
 ~~~
 
+Finally, the commands are enabled or disabled using the special command `"setContext"`. This is a string, predefined in the Visual Studio Code API, and `definitionSet.commands.setContext` is equal to this value. The contexts work via the `when` clause declared in "package.json". Please find the lines `"when": "tesseract.act.recognize.enabled"` and `"when": "tesseract.act.language.enabled"` in ["package.json"](https://github.com/SAKryukov/vscode-tesseract-act/blob/main/package.json).
+
 ### Recognition of an External Application
 
+The default for the Settings parameter "tesseract.executableFileLocation" is the string `"tesseract"`. It is not necessarily an executable file location, but it can be a `command`. Usually it works by including the location of an executabe part in the system `PATH` for all or certain users. In many cases, I personally avoid `PATH` modifications. Note that the content of the `PATH` is unknown to the Visual Studio Code application, so we cannot directly check up the existence of the executable path. Besides, this is not enough.
+
+The Tesseract application is recognized on the activation events (please see `"activationEvents"` in ["package.json"](https://github.com/SAKryukov/vscode-tesseract-act/blob/main/package.json) and on the event triggered when the Settings are changed. This is done by the function `changeConfigurationHandle(context)`, please see its code.
+
+The presence of the Tesseract OCR application is not relied on the existence of the executable file, because the user may enter the name of an unrelated file. Instead, the checkup is relied on `childProcess.execSync`. The application is simply executed and the exceptions are caught to check up if it is successful:
+
+~~~{lang=JavaScript}
+const commandExists = fileOrCommand =&gt; {
+    try {
+        childProcess.execSync(
+            definitionSet.tesseract.commandLineLanguages(
+                fileOrCommand));
+    } catch { // all cases
+        return false;
+    } //exception
+    return true;
+}; //commandExists
+~~~
+
+The Tesseract OCR process is executed synchronously, because the OCR is not actually performed, and it makes the execution fast.
+
+Sometimes this approach is called *offensive* in contrast to not very informative in this case *defensive*.
+
 ### One-Way Default
+
+Note that the function `commandExists` works with the command-line parameter passed to Tesseract OCR used to report the installed languages. One of the languages reported can be used as a parameter passed to the application to specify the language for the text recognition.
+
+There is one subtle case here: when the language parameter is omitted, the default language is used. This is English. There is no a language choice in the UI of the extension, because the default means making no choice. When a language is never selected, the status bar item shows: "Tesseract Language: default". When a user choses any language, there is no a way to get back to this condition. The user can only chose a different language, but not get back to the "no choice" condition. Why it is so and how does it work?
+
+Actually, it is possible to get back to the "no choice" situation, but to achive that, the user needs to delete the workspace cache data. When the user choses any language, the choice is stored in the workspace state:
+
+~~~{lang=JavaScript}
+const setState = (context, language) => {
+    context.workspaceState.update(definitionSet.tesseractLanguageKey, language);
+}; //setState
+const getState = context => 
+    context.workspaceState.get(definitionSet.tesseractLanguageKey);
+~~~
+
+
+
+
 
 ### Asynchronous I/O
 
