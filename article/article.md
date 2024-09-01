@@ -22,7 +22,7 @@ This tiny extension is also used to explain the general Visual Studio Code exten
 
 ## Motivation
 
-I think we all hate paper documents. But in many cases, we don’t have a choice. Stupid financial, legal, insurance or government services keep sending us paper-only documents we cannot ignore. In some countries, the so-called digital government is notoriously weak if not disastrous. With the combination of a scanner, OCR and graphical editors, we still can combine paper data and generate maintainable documents in response.
+I think we all hate paper documents. But in many cases, we don’t have a choice. Stupid financial, legal, insurance or government services keep sending us paper-only documents we cannot ignore. In some countries, the so-called *digital government* is notoriously weak if not disastrous. With the combination of a scanner, OCR and graphical editors, we still can combine paper data and generate maintainable documents in response.
 
 I have started to use Tesseract OCR very recently, with yet another enrollment. Before that time, I only tried different OCR tools, and I rejected Tesseract because its older versions were not Unicode, which is a big no-no. The recent version, however, is quite usable. When I tested it and found it acceptable, I started my practical use of it by crafting a Visual Studio Code extension. When the product matured, I published it on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=sakryukov.tesseract-act).
 
@@ -175,8 +175,11 @@ const getState = context =>
     context.workspaceState.get(definitionSet.tesseractLanguageKey);
 ~~~
 
+If a user activeates the command for chosing a language, choses a language at least once, it will be stored in the `workspaceState`. When a user 
 
+A state can be removed by calling `context.workspaceState.update(definitionSet.tesseractLanguageKey, undefined)`, but why? It would require and additional UI element, and it would be hard to explain to the user. Removing the last
 
+???
 
 
 ### Asynchronous I/O
