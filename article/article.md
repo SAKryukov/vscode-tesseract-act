@@ -11,6 +11,8 @@ It performs Optical Character Recognition of data found in an image file and ope
 
 This tiny extension is also used to explain the general Visual Studio Code extension writing techniques for the cases when an external application is used and when non-text input data needs to be processed.
 
+<!-- URL:
+https://www.codeproject.com/Articles/5387592/Tesseract-Act-->
 <!-- copy to CodeProject from here ------------------------------------------->
 
 ![Tesseract Act Logo](logo.png){id=image-title}
@@ -36,7 +38,7 @@ The source code is [available on GitHub](https://github.com/tesseract-ocr/tesser
 
 Trained data for additional languages can be installed separately. Trained data for different models can be found in separate `pinned` Git repositories found on the page of the Tesseract OCR account [tesseract-ocr](https://github.com/tesseract-ocr). The simplest way of installing a language pack is copying a single file *.traineddata to the subdirectory "tessdata" of the Tesseract executable directory. The list of currently installed languages can be obtained by the command line:
 
-~~~
+~~~{lang=Command}
 tesseract --list-langs
 ~~~
 
@@ -168,22 +170,68 @@ There is one subtle case here: when the language parameter is omitted, the defau
 Actually, it is possible to get back to the "no choice" situation, but to achive that, the user needs to delete the workspace cache data. When the user choses any language, the choice is stored in the workspace state:
 
 ~~~{lang=JavaScript}
-const setState = (context, language) => {
+const setState = (context, language) =&gt; {
     context.workspaceState.update(definitionSet.tesseractLanguageKey, language);
 }; //setState
-const getState = context => 
+const getState = context =&gt;
     context.workspaceState.get(definitionSet.tesseractLanguageKey);
 ~~~
 
-If a user activeates the command for chosing a language, choses a language at least once, it will be stored in the `workspaceState`. When a user 
+A state can be removed by calling `context.workspaceState.update(definitionSet.tesseractLanguageKey, undefined)`, but why?
 
-A state can be removed by calling `context.workspaceState.update(definitionSet.tesseractLanguageKey, undefined)`, but why? It would require and additional UI element, and it would be hard to explain to the user. Removing the last
+According to the general VSCode style, I also show the choice in a status bar item created using `vscode.window.createStatusBarItem` and also working as a choice command. When a choice is not yet made, it shows "Tesseract Language: default". When a choice is made at least once, it shows the chosen language, and getting back to the default is not possible. Also, when a user does the choice, I show the list of available languages, placing an already chosen language on top, and make it selected. Please see the function `selectLanguage` for more details.
 
-???
+I could not see any point in showing the default again. It would require and additional redundant UI element, and it would be hard to explain to the user. I can imagine only two kinds of the user. One would never chose a language, always working with the default English. A user who changed a language at least once probably knows what language should be used and may need to change the choice conciously, at least for the given workspace. All the currently installed languages are there anyway.
 
+Also, it would make no sense to store the choice per user. Obviously enough, the languages of the documents are only relevant to the workspace where the user works with those documents.
 
-### Asynchronous I/O
+If someone has different opinion on my decisions related to the default, I would like to know the motivation of it.
+
+### Pathological Cases
+
+The issues with the the language selection raises a question: what happens when a user installs or uninstalls the language during the operation?
+
+First of all, changing Tesseract data cannot send any notification to Visual Studio Code when the editor and even the input image files are loaded. The modified list of the installed Tesseract languages will only appear when the user changes the active workspace or reload the editor.
+
+What can happen when the user uninstalls the language already chosen by the user from Tesseract? It is even possible to uninstall the default language, English, by removing the trained data files.
+
+Let's test it. The missing language is chosen, the image recognition command is enabled, let's activate it. We can see the error message:
+
+~~~{lang=Error}
+Error opening data file {absolute path to} eng.traineddata
+~~~
+
+I think this behavior is fair enough. Of course, it happens because the error information is captured from the child process and transparently represented as a VSCode error message. By the way, for a final point, let's take a quick look at the child process used for the recognition.
+
+### Asynchronous OCR
+
+Finally, let's consider a very well known, trivial, but very important aspect: asynchronous execution of the Tesseract OCR. It is only required when the image is being recognized, as it may take noticeable time. At the same time, it is not very important when the recognition result appears in the editor --- the user may need to do something else during the operation and needs the editor's UI to be always responsive.
+
+~~~{lang=JavaScript}
+const recognizeText = (context, configuration) =&gt; {
+    //...
+    const act = () =&gt; {
+        childProcess.exec(commandLine, (error, stdout, stderr) =&gt; {
+            // examine stdout and strerr for errors,
+            // handle them, etc.
+            // ...
+            if (!error && fileSystem.existsSync(outputFileName))
+                vscode.workspace.openTextDocument(outputFileName).
+                then(document =&gt;
+                    vscode.window.showTextDocument(
+                        document, { preview: true }));
+        });
+    }; //act
+    // figure out if the user's confirmation for file overrite
+    // is required, call act(...) with or without confirmation,
+    // or cancel...
+}; // recognizeText
+~~~
+
+Note the combination of synchronous and asynchronous operation and the two-step callback-*promise* chain, the callback accepted by `childProcess.exec` as a parameter, and the promise created by `vscode.workspace.openTextDocument`.
 
 ## Conclusions
 
-I hope that the descriptions of the simple subtleties described in this article cover a wide set of extensions using an external application. I will gladly try to answer any questions related to Visual Studio Code extension writing in general.
+I hope that the descriptions of the simple subtleties described in this article cover a wide set of extensions using an external application.
+
+I will gladly try to answer any questions related to Visual Studio Code extension writing in general. I’ll also be much grateful for any questions, comments, suggestions, and especially for criticism.

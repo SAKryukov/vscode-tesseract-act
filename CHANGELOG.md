@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 3.0.0
+
+Publication: https://www.codeproject.com/Articles/5387592/Tesseract-Act
+
 ## Version 2.4.0
 
 Corrected detection of the Tesseract presence. The configuration property `tesseract.executableFileLocation` can be not only a file location, but also a command, accessible through the environment `path`.
