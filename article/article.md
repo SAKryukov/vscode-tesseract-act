@@ -6,8 +6,7 @@
 
 [*Sergey A Kryukov*](https://www.SAKryukov.org)
 
-A Visual Studio Code *extension*, a convenient UI wrapper for Tesseract OCR — in the VSCode style.
-It performs Optical Character Recognition of data found in an image file and opens the recognition result in a text editor.
+A Visual Studio Code *extension*, a convenient UI wrapper for Tesseract OCR — in the VSCode style: it performs Optical Character Recognition of data found in an image file and opens the recognition result in a text editor.
 
 This tiny extension is also used to explain the general Visual Studio Code extension writing techniques for the cases when an external application is used and when non-text input data needs to be processed.
 
@@ -16,6 +15,9 @@ https://www.codeproject.com/Articles/5387592/Tesseract-Act-->
 <!-- copy to CodeProject from here ------------------------------------------->
 
 ![Tesseract Act Logo](logo.png){id=image-title}
+
+<ul class="download"><li><a href="5387592/Working/vscode-tesseract-act.zip">Download source &mdash; 8.9 KB</a></li></ul>
+<ul class="download"><li><a href="https://marketplace.visualstudio.com/items?itemName=sakryukov.tesseract-act">Get Tesseract Act on the Visual Studio Marketplace</a></li></ul>
 
 ## Contents{no-toc}
 
