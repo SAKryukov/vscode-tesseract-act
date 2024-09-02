@@ -1,7 +1,10 @@
-*.zip
 *.vsix
 .vscode
 .git
+article/*.md
+**/*.zip
+**/*.css
+**/*.html
 **/*.webp
 **/.gitignore
 **/*.txt
