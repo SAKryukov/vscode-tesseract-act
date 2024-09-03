@@ -127,10 +127,8 @@ const definitionSet = {
     isImageFileSupported: function(file) {
         if (!file) return false;
         file = file.toLowerCase();
-        for (let suffix of this.supportedInputFileTypes)
-            if (file.endsWith(`.${suffix}`))
-                return true;
-        return false;
+        return this.supportedInputFileTypes.some(
+            suffix =&gt; file.endsWith(`.${suffix}`));
     }, //isImageFileSupported
     //...
 };

@@ -23,10 +23,8 @@ const definitionSet = {
     isImageFileSupported: function(file) {
         if (!file) return false;
         file = file.toLowerCase();
-        for (let suffix of this.supportedInputFileTypes)
-            if (file.endsWith(`.${suffix}`))
-                return true;
-        return false;
+        return this.supportedInputFileTypes.some(
+            suffix => file.endsWith(`.${suffix}`));
     }, //isImageFileSupported
     tesseract: { //careful! specific to Tesseract-OCR:
         outputFile: inputFile =>
