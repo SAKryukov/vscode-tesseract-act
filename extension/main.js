@@ -114,7 +114,7 @@ const changeConfigurationHandle = (context) => {
         statusBarItem = vscode.window.createStatusBarItem(
             "tesseract.act.language.statusBarItem", // unused
             vscode.StatusBarAlignment.Left); // SA!!! I don't like vscode.StatusBarAlignment.Right,
-                                             // because it requires pretty stupid "priority" argument
+                                             // because it requires pretty stupid argument: priority
     context.subscriptions.push(statusBarItem);
     const language = getState(context);
     statusBarItem.text = definitionSet.statusBarItemLanguage(language);
@@ -132,11 +132,11 @@ const recognizeText = (context, configuration) => {
         childProcess.exec(commandLine, (error, stdout, stderr) => {
             if (stdout)
                 vscode.window.showInformationMessage(stdout);
-            if (stderr && stderr.startsWith("Error")) //SA???
+            if (error && stderr)
                 vscode.window.showErrorMessage(stderr);
             if (!error && fileSystem.existsSync(outputFileName))
                 vscode.workspace.openTextDocument(outputFileName).then(document =>
-                    vscode.window.showTextDocument(document, { preview: true }));
+                    vscode.window.showTextDocument(document));
         });
     }; //act
     const actWithConfirmation = () => {
