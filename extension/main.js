@@ -49,7 +49,17 @@ const definitionSet = {
             return list;
     }, //parseList
     statusBarItemDummyName: "tesseract.act.language.statusBarItem",
+    languagesQuickPickPlaceholder: "Select Tesseract Language",
     errorFileNotFound: function(location) { return `File not found: ${this.quote(location)}. Please edit VSCode settings, "tesseract.executableFileLocation"` },
+    overwriteConfirmationRequest: {
+        optionSet: [
+            "Overwrite and continue",
+            "Overwrite, continue, and don't ask me again during the current workspace session",
+            "Cancel"],
+        indexNoAsk: 1,
+        indexCancel: 2,
+        placeholder: filename => `Output file ${filename} already exists. What to do?`,
+    }, //overwriteConfirmationRequest
 }; //definitionSet
 
 const commandExists = fileOrCommand => {
@@ -145,18 +155,13 @@ const recognizeText = (context, configuration) => {
         });
     }; //act
     const actWithConfirmation = () => {
-        //SA??? new
-        const request = [
-            "Overwrite and continue",
-            "Overwrite, continue, and don't ask me again during the current workspace session",
-            "Cancel"];
-        const noAsk = request[1];
-        const cancel = request[2];
-        vscode.window.showQuickPick(request, {
-            placeHolder: `Output file ${definitionSet.quote(path.basename(outputFileName))} already exists. What to do?`,
+        vscode.window.showQuickPick(definitionSet.overwriteConfirmationRequest.optionSet, {
+            placeHolder: definitionSet.overwriteConfirmationRequest.placeholder(definitionSet.quote(path.basename(outputFileName))),
         }).then(answer => {
-            if (!answer || answer == cancel) return; // answer is undefined (!answer) if the user hits Cancel button
-            if (answer == noAsk) continueWithoutConfirmation = true;
+            if (!answer || answer == definitionSet.overwriteConfirmationRequest.optionSet[definitionSet.overwriteConfirmationRequest.indexCancel])
+                return; // answer is undefined (!answer) if the user hits Cancel button
+            if (answer == definitionSet.overwriteConfirmationRequest.optionSet[definitionSet.overwriteConfirmationRequest.indexNoAsk])
+                continueWithoutConfirmation = true;
             act();
         });    
     }; //actWithConfirmation
@@ -187,8 +192,7 @@ const selectLanguage = context => {
     }; //sortLanguages
     sortLanguages(context, languages);    
     vscode.window.showQuickPick(languages, {
-        //SA??? new
-        placeHolder: "Select Tesseract Language",
+        placeHolder: definitionSet.languagesQuickPickPlaceholder,
         onDidSelectItem: item => {
             setState(context, item);
             statusBarItem.text = definitionSet.statusBarItemLanguage(item);
