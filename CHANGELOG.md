@@ -1,5 +1,10 @@
 # Change Log
 
+## Version 3.1.0
+
+# Code: improved readability, error handling for pathological situations
+# Article: added description of pathological situation
+
 ## Version 3.0.0
 
 Publication: https://www.codeproject.com/Articles/5387592/Tesseract-Act
