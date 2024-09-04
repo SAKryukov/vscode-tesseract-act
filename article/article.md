@@ -201,6 +201,13 @@ Let's test it. The missing language is chosen, and the image recognition command
 Error opening data file {absolute path to} eng.traineddata
 ~~~
 
+SA???
+
+~~~{lang=Error}
+'tesseract' is not recognized as an internal or external command,
+operable program or batch file.
+~~~
+
 I think this behavior is fair enough. Of course, it happens because the error information is captured from the child process and transparently represented as a VSCode error message. By the way, for a final point, let's take a quick look at the child process used for the recognition.
 
 ### Asynchronous OCR
