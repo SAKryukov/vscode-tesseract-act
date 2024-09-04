@@ -201,7 +201,7 @@ Let's test it. The missing language is chosen, and the image recognition command
 Error opening data file {absolute path to} eng.traineddata
 ~~~
 
-SA???
+Another abnormal situation may happen if the user uninstalls or removes tesseract during the Visual Studio Code session. This is another relatively rare situation when nothing can send a notification to the editor. If it happens between sessions or followed by the modification of the Settings, the Tesseract Code application is recognized anyway --- please see the section [Recognition of an External Application](#heading-recognition-of-an-external-application). But when it happens inside a session, the problem is recognized only at the attempt to perform OCR. Let's test it, too:
 
 ~~~{lang=Error}
 'tesseract' is not recognized as an internal or external command,
