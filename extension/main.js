@@ -35,7 +35,21 @@ const definitionSet = {
     },
     quote: text =>
         `${String.fromCodePoint(0x201C)}${text}${String.fromCodePoint(0x201D)}`,
-    empty: "",
+    parseList: (list, source) => {
+            source = source.replaceAll("\r", "");
+            const split = source.split("\n");
+            let started = false;
+            for (let line of split) {
+                line = line.trim();
+                if (line.length < 1) continue;
+                if (!started && line.endsWith(":"))
+                    { started = true; continue; }
+                list.push(line);
+            } //loop       
+            return list;
+    }, //parseList
+    statusBarItemDummyName: "tesseract.act.language.statusBarItem",
+    errorFileNotFound: function(location) { return `File not found: ${this.quote(location)}. Please edit VSCode settings, "tesseract.executableFileLocation"` },
 }; //definitionSet
 
 const commandExists = fileOrCommand => {
@@ -84,16 +98,7 @@ const parseLanguages = configuration => {
     const list = [];
     childProcess.exec(definitionSet.tesseract.commandLineLanguages(
         configuration.executableFileLocation), (_, stdout) => {
-        stdout = stdout.replaceAll("\r", definitionSet.empty);
-        const split = stdout.split("\n");
-        let started = false;
-        for (let line of split) {
-            line = line.trim();
-            if (line.length < 1) continue;
-            if (!started && line.endsWith(":"))
-                { started = true; continue; }
-            list.push(line);
-        } //loop       
+            definitionSet.parseList(list, stdout);
     });
     return list;
 }; //parseLanguages
@@ -107,12 +112,12 @@ const changeConfigurationHandle = (context) => {
             definitionSet.commands.setContext,
             definitionSet.commands.recognizeContext,
             false);
-        return vscode.window.showErrorMessage(`File not found: ${definitionSet.quote(configuration.executableFileLocation)}. Please edit VSCode settings, "tesseract.executableFileLocation"`);
+        return vscode.window.showErrorMessage(definitionSet.errorFileNotFound(configuration.executableFileLocation));
     } //if
     languages = parseLanguages(configuration);
     if (statusBarItem == null)
         statusBarItem = vscode.window.createStatusBarItem(
-            "tesseract.act.language.statusBarItem", // unused
+            definitionSet.statusBarItemDummyName, // unused
             vscode.StatusBarAlignment.Left); // SA!!! I don't like vscode.StatusBarAlignment.Right,
                                              // because it requires pretty stupid argument: priority
     context.subscriptions.push(statusBarItem);
@@ -140,6 +145,7 @@ const recognizeText = (context, configuration) => {
         });
     }; //act
     const actWithConfirmation = () => {
+        //SA??? new
         const request = [
             "Overwrite and continue",
             "Overwrite, continue, and don't ask me again during the current workspace session",
@@ -181,6 +187,7 @@ const selectLanguage = context => {
     }; //sortLanguages
     sortLanguages(context, languages);    
     vscode.window.showQuickPick(languages, {
+        //SA??? new
         placeHolder: "Select Tesseract Language",
         onDidSelectItem: item => {
             setState(context, item);
