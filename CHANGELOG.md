@@ -3,7 +3,7 @@
 ## Version 3.1.0
 
 # Code: improved readability, error handling for pathological situations
-# Article: added description of pathological situation
+# Article: added description of pathological situations, versions
 
 ## Version 3.0.0
 

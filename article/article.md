@@ -167,7 +167,9 @@ Note that the function `commandExists` works with the command-line parameter pas
 
 There is one subtle case here: when the language parameter is omitted, the default language is used. This is English. There is no language choice in the UI of the extension because the default means making no choice. When a language is never selected, the status bar item shows: "Tesseract Language: default". When a user chooses any language, there is no way to get back to this condition. The user can only pick a different language, but not get back to the "no choice" condition. Why is it so and how does it work?
 
-Actually, it is possible to get back to the "no choice" situation, but to achieve that, the user needs to delete the workspace cache data. When the user picks up any language from the list, the choice is stored in the workspace state:
+In fact, it is possible to get back to the "no choice" situation. To achieve that, the user needs to wipe the workspace data. By the way, its location depends on the platform and probably the editor's release, but it can be found using the VSCode command "Developer: Open User Data Folder". The exact location of the workspace storage is not documented, but at the moment of writing, it can be found in the sub-directory "User/workspaceStorage". It's important to note that deletion of all files from this directory and the directories "Backup", "Cache", and "CachedData" is safe.
+
+When the user picks up any language from the list, the choice is stored in the workspace state:
 
 ~~~{lang=JavaScript}
 const setState = (context, language) =&gt; {
@@ -236,6 +238,10 @@ const recognizeText = (context, configuration) =&gt; {
 ~~~
 
 Note the combination of synchronous and asynchronous operation and the two-step callback-*promise* chain, the callback accepted by `childProcess.exec` as a parameter, and the promise created by `vscode.workspace.openTextDocument`.
+
+## Versions
+
+Please see the [version history on the product page](https://marketplace.visualstudio.com/items?itemName=sakryukov.tesseract-act) on the Visual Studio Marketplace.
 
 ## Conclusions
 
