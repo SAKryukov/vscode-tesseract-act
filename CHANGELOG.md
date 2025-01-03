@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 3.2.0
+
+The publication moved to GitHub (CodeProject is out of business, publications are accessible but not updateable).
+
 ## Version 3.1.0
 
 Code: improved readability, error handling for pathological situations

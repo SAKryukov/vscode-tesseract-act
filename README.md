@@ -21,4 +21,4 @@ The second command allows the user to select a language for recognition. The use
 
 [Tesseract Act On Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=sakryukov.tesseract-act)
 
-Original publication: [https://www.codeproject.com/Articles/5387592/Tesseract-Act](https://www.codeproject.com/Articles/5387592/Tesseract-Act)
+Original publication: [https://SAKryukov.GitHub.io/publications/2024-09-03.Tesseract-Act.html](https://SAKryukov.GitHub.io/publications/2024-09-03.Tesseract-Act.html)
